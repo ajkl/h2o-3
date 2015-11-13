@@ -1,4 +1,4 @@
-package water.util;
+package water.codegen;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -24,7 +24,6 @@ import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 
 import water.H2O;
-import water.exceptions.JCodeSB;
 
 /** Internal utility for pretty-printing Models as Java code
  */

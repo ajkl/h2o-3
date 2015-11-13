@@ -2,8 +2,6 @@ package water.codegen;
 
 import java.util.ArrayList;
 
-import water.exceptions.JCodeSB;
-
 /**
  * A simple code generation pipeline.
  *

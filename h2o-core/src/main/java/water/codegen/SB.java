@@ -1,9 +1,9 @@
-package water.util;
+package water.codegen;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import water.exceptions.JCodeSB;
+import water.util.IcedBitSet;
 
 /** Tight/tiny StringBuilder wrapper.
  *  Short short names on purpose; so they don't obscure the printing.

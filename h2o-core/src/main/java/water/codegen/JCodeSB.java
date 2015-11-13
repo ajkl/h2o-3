@@ -1,4 +1,4 @@
-package water.exceptions;
+package water.codegen;
 
 import water.util.IcedBitSet;
 

@@ -1,13 +1,13 @@
-package water.util;
+package water.codegen;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 
-import water.exceptions.JCodeSB;
+import water.util.IcedBitSet;
 
 /**
- * A simple stream mimicing API of {@link SB}.
+ * A simple stream mimicking API of {@link SB}.
  */
 public class SBPrintStream extends PrintStream implements JCodeSB<SBPrintStream> {
 

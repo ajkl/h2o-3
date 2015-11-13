@@ -1,7 +1,5 @@
 package water.codegen;
 
-import water.exceptions.JCodeSB;
-
 /**
  * Interface for code generator.
  */

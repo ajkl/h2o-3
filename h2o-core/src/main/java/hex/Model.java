@@ -12,16 +12,36 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Random;
+import java.util.List;
 
 import hex.genmodel.GenModel;
-import water.*;
+import water.DKV;
+import water.Futures;
+import water.H2O;
+import water.Iced;
+import water.Job;
+import water.Key;
+import water.Lockable;
+import water.MRTask;
+import water.MemoryManager;
+import water.Weaver;
 import water.api.StreamWriter;
 import water.codegen.CodeGenerator;
 import water.codegen.CodeGeneratorPipeline;
-import water.exceptions.JCodeSB;
-import water.fvec.*;
-import water.util.*;
+import water.codegen.JCodeSB;
+import water.fvec.C0DChunk;
+import water.fvec.CategoricalWrappedVec;
+import water.fvec.Chunk;
+import water.fvec.Frame;
+import water.fvec.NewChunk;
+import water.fvec.Vec;
+import water.util.ArrayUtils;
+import water.codegen.JCodeGen;
+import water.util.LineLimitOutputStreamWrapper;
+import water.util.Log;
+import water.util.MathUtils;
+import water.codegen.SBPrintStream;
+import water.util.TwoDimTable;
 
 import static hex.ModelMetricsMultinomial.getHitRatioTable;
 
@@ -39,11 +59,6 @@ public abstract class Model<M extends Model<M,P,O>, P extends Model.Parameters, 
     Frame scoreDeepFeatures(Frame frame, final int layer);
   }
 
-  public interface GLRMArchetypes {
-    Frame scoreReconstruction(Frame frame, Key destination_key, boolean reverse_transform);
-    Frame scoreArchetypes(Frame frame, Key destination_key, boolean reverse_transform);
-  }
-
   /**
    * Default threshold for assigning class labels to the target class (for binomial models)
    * @return threshold in 0...1
@@ -53,7 +68,7 @@ public abstract class Model<M extends Model<M,P,O>, P extends Model.Parameters, 
       return 0.5;
     if (_output._validation_metrics != null && ((ModelMetricsBinomial)_output._validation_metrics)._auc != null)
       return ((ModelMetricsBinomial)_output._validation_metrics)._auc.defaultThreshold();
-    if (((ModelMetricsBinomial)_output._training_metrics)._auc != null)
+    if (_output._training_metrics != null && ((ModelMetricsBinomial)_output._training_metrics)._auc != null)
       return ((ModelMetricsBinomial)_output._training_metrics)._auc.defaultThreshold();
     return 0.5;
   }
@@ -86,7 +101,6 @@ public abstract class Model<M extends Model<M,P,O>, P extends Model.Parameters, 
     public enum FoldAssignmentScheme {
       AUTO, Random, Modulo, Stratified
     }
-    protected long nFoldSeed() { return new Random().nextLong(); }
     public FoldAssignmentScheme _fold_assignment = FoldAssignmentScheme.AUTO;
     public Distribution.Family _distribution = Distribution.Family.AUTO;
     public double _tweedie_power = 1.5f;
@@ -742,7 +756,7 @@ public abstract class Model<M extends Model<M,P,O>, P extends Model.Parameters, 
     // Score the dataset, building the class distribution & predictions
     BigScore bs = new BigScore(domains[0],ncols,adaptFrm.means(),_output.hasWeights() && adaptFrm.find(_output.weightsName()) >= 0,computeMetrics, true /*make preds*/).doAll(ncols, Vec.T_NUM, adaptFrm);
     if (computeMetrics)
-      bs._mb.makeModelMetrics(this, fr, adaptFrm, bs.outputFrame());
+      bs._mb.makeModelMetrics(this, fr);
     return bs.outputFrame((null == destination_key ? Key.make() : Key.make(destination_key)), names, domains);
   }
 
@@ -881,21 +895,7 @@ public abstract class Model<M extends Model<M,P,O>, P extends Model.Parameters, 
     if (_output._model_metrics != null)
       for( Key k : _output._model_metrics )
         k.remove(fs);
-    return super.remove_impl(fs);
-  }
-
-  /** Write out K/V pairs, in this case model metrics. */
-  @Override protected AutoBuffer writeAll_impl(AutoBuffer ab) { 
-    if (_output._model_metrics != null)
-      for( Key k : _output._model_metrics )
-        ab.putKey(k);
-    return super.writeAll_impl(ab);
-  }
-  @Override protected Keyed readAll_impl(AutoBuffer ab, Futures fs) { 
-    if (_output._model_metrics != null)
-      for( Key k : _output._model_metrics )
-        ab.getKey(k,fs);        // Load model metrics
-    return super.readAll_impl(ab,fs);
+    return fs;
   }
 
   @Override protected long checksum_impl() { return _parms.checksum_impl() * _output.checksum_impl(); }
@@ -1227,6 +1227,18 @@ public abstract class Model<M extends Model<M,P,O>, P extends Model.Parameters, 
       // Remove temp keys.
       cleanup_adapt(fr, data);
     }
+  }
+
+  @Override
+  public List<Key> getPublishedKeys() {
+    List<Key> p = Arrays.asList(_output._model_metrics);
+    p.addAll(super.getPublishedKeys());
+    return p;
+  }
+
+  @Override
+  public void delete() {
+    super.delete();
   }
 
   public void deleteCrossValidationModels( ) {
