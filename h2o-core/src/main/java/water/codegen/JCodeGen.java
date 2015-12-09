@@ -25,7 +25,9 @@ import javax.tools.ToolProvider;
 
 import water.H2O;
 
-/** Internal utility for pretty-printing Models as Java code
+/** Internal utility for pretty-printing Models as Java code.
+ *
+ * Implements methods from JCodeSB ingerface.
  */
 public class JCodeGen {
 
