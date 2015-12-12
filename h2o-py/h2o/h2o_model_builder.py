@@ -50,7 +50,7 @@ def _ow(name,kwargs):  # for checking offsets and weights, c is column, fr is fr
   else:
     if fr is None: raise ValueError("offsets/weights/fold given, but missing training_frame")
     res=fr[c]
-  kwargs[name] = None if res is None else res.col_names()[0]
+  kwargs[name] = None if res is None else res.col_names[0]
   if res is not None and kwargs["validation_x"] is not None and kwargs["validation_frame"] is None:  # validation frame must have any offsets, weights, folds, etc.
     raise ValueError("offsets/weights/fold given, but missing validation_frame")
   return res
@@ -63,7 +63,7 @@ def _check_frame(x,y,response):  # y and response are only ever different for va
 
 def _check_col(x,vx,vfr,col):
   x=_check_frame(x,col,col)
-  vx= None if vfr is None else _check_frame(vx,vfr[col.names()[0]],vfr[col.names()[0]])
+  vx= None if vfr is None else _check_frame(vx,vfr[col.names[0]],vfr[col.names[0]])
   return x,vx
 
 def _model_build(x,y,vx,vy,algo,offsets,weights,fold_column,kwargs):
@@ -74,11 +74,11 @@ def _model_build(x,y,vx,vy,algo,offsets,weights,fold_column,kwargs):
   if weights     is not None: x,vx=_check_col(x,vx,kwargs["validation_frame"],weights)
   if fold_column is not None: x,vx=_check_col(x,vx,kwargs["validation_frame"],fold_column)
 
-  kwargs['training_frame']=x._id
-  if vx is not None: kwargs['validation_frame']=vx._id
-  if y is not None:  kwargs['response_column']=y._col_names[0]
+  kwargs['training_frame']=x.frame_id
+  if vx is not None: kwargs['validation_frame']=vx.frame_id
+  if y is not None:  kwargs['response_column']=y.col_names[0]
 
-  kwargs = dict([(k, kwargs[k]._frame()._id if isinstance(kwargs[k], H2OFrame) else kwargs[k]) for k in kwargs if kwargs[k] is not None])
+  kwargs = dict([(k, kwargs[k]._frame().frame_id if isinstance(kwargs[k], H2OFrame) else kwargs[k]) for k in kwargs if kwargs[k] is not None])
 
   do_future = kwargs.pop("do_future") if "do_future" in kwargs else False
   future_model = H2OModelFuture(H2OJob(H2OConnection.post_json("ModelBuilders/"+algo, **kwargs), job_type=(algo+" Model Build")), x)

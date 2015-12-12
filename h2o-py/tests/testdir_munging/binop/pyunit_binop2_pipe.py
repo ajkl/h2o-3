@@ -28,13 +28,13 @@ def binop_pipe(ip,port):
     res = iris[0] | 1
     rows = res.nrow
     assert rows == rows, "dimension mismatch"
-    !new_rows = iris[res].nrow
+    new_rows = iris[res].nrow
     assert new_rows == rows, "wrong number of rows returned"
 
     res = 1 | iris[1]
-    !rows = res.nrow
+    rows = res.nrow
     assert rows == rows, "dimension mismatch"
-    !new_rows = iris[res].nrow
+    new_rows = iris[res].nrow
     assert new_rows == rows, "wrong number of rows returned"
 
     # frame/vec

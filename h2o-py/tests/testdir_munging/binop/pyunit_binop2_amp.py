@@ -18,22 +18,22 @@ def binop_amp(ip,port):
 
     # LHS: scaler, RHS: H2OVec
     amp_res = 1 & iris[1]
-    !amp_rows = amp_res.nrow
+    amp_rows = amp_res.nrow
     assert amp_rows == rows, "dimension mismatch"
-    !new_rows = iris[amp_res].nrow
+    new_rows = iris[amp_res].nrow
     assert new_rows == rows, "wrong number of rows returned"
 
     ###################################################################
 
     # LHS: scaler, RHS: H2OFrame
     res = 1.2 + iris[2]
-    res2 = res[11,:] & iris
+    res2 = iris[1,:] & res[7,:].flatten()
     res2.show()
 
     # LHS: scaler, RHS: H2OVec
-    res = 1.2 + iris[2]
-    res2 = res[43,:] & iris[1]
-    res2.show()
+    # res = 1.2 + iris[2]
+    # res2 = res[43,:] & iris[1,:].flatten()
+    # res2.show()
 
     ###################################################################
 
@@ -53,9 +53,9 @@ def binop_amp(ip,port):
     assert res.sum() == 65.0, "expected all True"
 
     # LHS: H2OVec, RHS: H2OVec
-    res = 1.2 + iris[2]
-    res2 = iris[1,:] & res[7,:]
-    res2.show()
+    # res = 1.2 + iris[2]
+    # res2 = iris[1,:] & res[7,:]
+    # res2.show()
 
     # LHS: H2OVec, RHS: scaler
     res = iris[0] & 0
@@ -88,9 +88,9 @@ def binop_amp(ip,port):
     #    pass
 
     # LHS: H2OFrame, RHS: scaler
-    res = 1.2 + iris[2]
-    res2 = iris & res[55,:]
-    res2.show()
+    # res = 1.2 + iris[2]
+    # res2 = iris & res[55,:]
+    # res2.show()
 
     # LHS: H2OFrame, RHS: scaler
     res = iris & 0

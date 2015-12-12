@@ -46,8 +46,8 @@ def cv_carsGLM(ip,port):
 
     # 3. folds_column
     num_folds = random.randint(2,5)
-    fold_assignments = h2o.H2OFrame(python_obj=[[random.randint(0,num_folds-1)] for f in range(cars.nrow)])
-    fold_assignments.setNames(["fold_assignments"])
+    fold_assignments = h2o.H2OFrame([[random.randint(0,num_folds-1) for f in range(cars.nrow)]])
+    fold_assignments.set_names(["fold_assignments"])
     cars = cars.cbind(fold_assignments)
     glm = h2o.glm(y=cars[response_col], x=cars[predictors], training_frame=cars, family=family,
                   fold_column="fold_assignments", keep_cross_validation_predictions=True)
@@ -87,7 +87,7 @@ def cv_carsGLM(ip,port):
     ## boundary cases
     # 1. nfolds = number of observations (leave-one-out cross-validation)
     # TODO: PUBDEV-1776
-    !#glm = h2o.glm(y=cars[response_col], x=cars[predictors], nfolds=cars.nrow, family=family,
+    #glm = h2o.glm(y=cars[response_col], x=cars[predictors], nfolds=cars.nrow, family=family,
     #              fold_assignment="Modulo")
 
     # 2. nfolds = 0
@@ -112,7 +112,7 @@ def cv_carsGLM(ip,port):
 
     # 2. more folds than observations
     try:
-        !glm = h2o.glm(y=cars[response_col], x=cars[predictors], nfolds=cars.nrow+1, family=family,
+        glm = h2o.glm(y=cars[response_col], x=cars[predictors], nfolds=cars.nrow+1, family=family,
                       fold_assignment="Modulo")
         assert False, "Expected model-build to fail when nfolds > nobs"
     except EnvironmentError:

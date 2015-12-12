@@ -20,7 +20,7 @@ def binop_neq(ip,port):
     res = 3.5 != iris
     res_rows, res_cols = res.dim
     assert res_rows == rows and res_cols == cols, "dimension mismatch"
-    !new_rows = iris[res[1]].nrow
+    new_rows = iris[res[1]].nrow
     assert new_rows == 144, "wrong number of rows returned"
 
     #frame/vec
@@ -40,28 +40,28 @@ def binop_neq(ip,port):
 
     #vec/vec
     res = iris[0] != iris[1]
-    !res_rows = res.nrow
+    res_rows = res.nrow
     assert res_rows == rows, "dimension mismatch"
-    !new_rows = iris[res].nrow
+    new_rows = iris[res].nrow
     assert new_rows == rows, "wrong number of rows returned"
 
     res = iris[2] != iris[2]
-    !res_rows = res.nrow
+    res_rows = res.nrow
     assert res_rows == rows, "dimension mismatch"
-    !new_rows = iris[res].nrow
+    new_rows = iris[res].nrow
     assert new_rows == 0, "wrong number of rows returned"
 
     #vec/scaler
     res = iris[0] != 4.7
-    !res_rows = res.nrow
+    res_rows = res.nrow
     assert res_rows == rows, "dimension mismatch"
-    !new_rows = iris[res].nrow
+    new_rows = iris[res].nrow
     assert new_rows == 148, "wrong number of rows returned"
 
     res = 3.5 != iris[1]
-    !res_rows = res.nrow
+    res_rows = res.nrow
     assert res_rows == rows, "dimension mismatch"
-    !new_rows = iris[res].nrow
+    new_rows = iris[res].nrow
     assert new_rows == 144, "wrong number of rows returned"
 
     # frame/frame

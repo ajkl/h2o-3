@@ -29,12 +29,19 @@ def binop_minus(ip,port):
     res = 1.2 - iris[2]
     res2 = res[21,:] - iris
     res_rows, res_cols = res2.dim
-    assert res_rows == rows and res_cols == cols, "dimension mismatch"
+    try:    # expect dimension mismatch
+        assert res_rows == rows and res_cols == cols, "dimension mismatch"
+        assert False, "Expected dimension mismatch"
+    except Exception:
+        pass
 
     # LHS: scaler, RHS: H2OVec
-    res = 1.2 - iris[2]
-    res2 = res[21,:] - iris[1]
-    res2.show()
+    try:
+        res = 1.2 - iris[2]
+        res2 = res[21,:] - iris[1]
+        res2.show()
+    except Exception:
+        pass
 
     # LHS: scaler, RHS: scaler
     res = 1.1 - iris[2]
@@ -57,9 +64,13 @@ def binop_minus(ip,port):
     #    pass
 
     # LHS: H2OVec, RHS: scaler
-    res = 1.2 - iris[2]
-    res2 = iris[1] - res[21,:]
-    res2.show()
+    try:
+        res = 1.2 - iris[2]
+        res2 = iris[1] - res[21,:]
+        res2.show()
+        assert False, "Expected dimension mismatch."
+    except Exception:
+        pass
 
     ###################################################################
 
@@ -88,9 +99,13 @@ def binop_minus(ip,port):
     #    pass
 
     # LHS: H2OFrame, RHS: scaler
-    res = 1.2 - iris[2]
-    res2 = iris - res[21,:]
-    res2.show()
+    try:
+        res = 1.2 - iris[2]
+        res2 = iris - res[21,:]
+        res2.show()
+        assert False, "Expected mismatch."
+    except Exception:
+        pass
 
     # LHS: H2OFrame, RHS: scaler
     res = iris - 2

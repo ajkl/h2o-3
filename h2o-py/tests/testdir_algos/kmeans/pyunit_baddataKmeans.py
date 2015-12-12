@@ -16,9 +16,8 @@ def baddataKmeans(ip,port):
   # Row elements that are None will be replaced with mean of column
   #Log.info("Training data with 1 row of all Nones: replace with column mean")
   data = rawdata[:]
-  for cidx, cval in enumerate(data[24]):
-    data[24][cidx] = None
-  frame = h2o.H2OFrame(data)
+  data[24] = [None]*cols
+  frame = h2o.H2OFrame(zip(*data))
 
   km_model = h2o.kmeans(x=frame, k=5)
 
@@ -30,9 +29,8 @@ def baddataKmeans(ip,port):
   # Columns with constant value will be automatically dropped
   #Log.info("Training data with 1 col of all 5's: drop automatically")
   data = rawdata[:]
-  for idx, val in enumerate(data):
-    data[idx][4] = 5
-  frame = h2o.H2OFrame(data)
+  for row in data: row[4] = 5
+  frame = h2o.H2OFrame(zip(*data))
 
   km_model = h2o.kmeans(x=frame, k=5)
 
@@ -44,10 +42,10 @@ def baddataKmeans(ip,port):
 
   # Log.info("Training data with 1 col of all None's, 1 col of all zeroes: drop automatically")
   data = rawdata[:]
-  for idx, val in enumerate(data):
-    data[idx][4] = None
-    data[idx][7] = 0
-  frame = h2o.H2OFrame(data)
+  for row in data:
+    row[4] = None
+    row[7] = 0
+  frame = h2o.H2OFrame(zip(*data))
 
   km_model = h2o.kmeans(x=frame, k=5)
 
@@ -58,7 +56,7 @@ def baddataKmeans(ip,port):
   # TODO: expect_warning(km_model = h2o.kmeans(x=frame, k=5))
 
   # Log.info("Training data with all None's")
-  data = [[None for c in range(cols)] for r in range(rows)]
+  data = [[None for c in range(cols) for r in range(rows)]]
   frame = h2o.H2OFrame(data)
 
   try:
@@ -69,7 +67,7 @@ def baddataKmeans(ip,port):
 
   # Log.info("Training data with a categorical column(s)")
   data = [[random.choice(string.ascii_uppercase) for c in range(cols)] for r in range(rows)]
-  frame = h2o.H2OFrame(data)
+  frame = h2o.H2OFrame(zip(*data))
 
   km_model = h2o.kmeans(x=frame, k=5)
   centers = km_model.centers()

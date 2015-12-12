@@ -15,7 +15,7 @@ import tabulate
 from connection import H2OConnection
 from job import H2OJob
 from expr import ExprNode
-from frame import H2OFrame, _py_tmp_key
+from frame import H2OFrame, _py_tmp_key, _is_list_of_lists
 from model import H2OBinomialModel,H2OAutoEncoderModel,H2OClusteringModel,H2OMultinomialModel,H2ORegressionModel
 import h2o_model_builder
 
@@ -54,18 +54,61 @@ def _import1(path):
     raise ValueError("ImportFiles of " + path + " failed on " + j['fails'])
   return j['destination_frames'][0]
 
-def upload_file(path, destination_frame=""):
+def upload_file(path, destination_frame="", header=(-1,0,1), sep="", col_names=None, col_types=None, na_strings=None):
+  """Upload a dataset at the path given from the local machine to the H2O cluster.
+  Parameters
+  ----------
+    path : str
+      A path specifying the location of the data to upload.
+    destination_frame : str, optional
+      The unique hex key assigned to the imported file. If none is given, a key will
+      automatically be generated.
+    header : int, optional
+     -1 means the first line is data, 0 means guess, 1 means first line is header.
+    sep : str, optional
+      The field separator character. Values on each line of the file are separated by
+      this character. If sep = "", the parser will automatically detect the separator.
+    col_names : list, optional
+      A list of column names for the file.
+    col_types : list or dict, optional
+      A list of types or a dictionary of column names to types to specify whether columns
+      should be forced to a certain type upon import parsing. If a list, the types for
+      elements that are None will be guessed. The possible types a column may have are:
+          "unknown" - this will force the column to be parsed as all NA
+          "uuid"    - the values in the column must be true UUID or will be parsed as NA
+          "string"  - force the column to be parsed as a string
+          "numeric" - force the column to be parsed as numeric. H2O will handle the
+                      compression of the numeric data in the optimal manner.
+          "enum"    - force the column to be parsed as a categorical column.
+          "time"    - force the column to be parsed as a time column. H2O will attempt to
+                      parse the following list of date time formats.
+                        date:
+                          "yyyy-MM-dd"
+                          "yyyy MM dd"
+                          "dd-MMM-yy"
+                          "dd MMM yy"
+                        time:
+                          "HH:mm:ss"
+                          "HH:mm:ss:SSS"
+                          "HH:mm:ss:SSSnnnnnn"
+                          "HH.mm.ss"
+                          "HH.mm.ss.SSS"
+                          "HH.mm.ss.SSSnnnnnn"
+                      Times can also contain "AM" or "PM".
+    na_strings : list or dict, optional
+      A list of strings, or a list of lists of strings (one list per column), or a
+      dictionary of column names to strings which are to be interpreted as missing values.
+  Returns
+  -------
+    A new H2OFrame instance.
+  Examples
+  --------
+    >>> import h2o as ml
+    >>> ml.upload_file(path="/path/to/local/data", destination_frame="my_local_data")
+    ...
   """
-  Upload a dataset at the path given from the local machine to the H2O cluster.
+  return H2OFrame()._upload_parse(path, destination_frame, header, sep, col_names, col_types, na_strings)
 
-  :param path: A path specifying the location of the data to upload.
-  :param destination_frame: The name of the H2O Frame in the H2O Cluster.
-  :return: A new H2OFrame
-  """
-  fui = {"file": os.path.abspath(path)}
-  destination_frame = _py_tmp_key() if destination_frame == "" else destination_frame
-  H2OConnection.post_json(url_suffix="PostFile", file_upload_info=fui,destination_frame=destination_frame)
-  return H2OFrame(raw_id=destination_frame)
 
 
 def import_frame(path=None):
@@ -333,9 +376,11 @@ def _quoted(key):
   key = key if is_quoted  else "\"" + key + "\""
   return key
 
-def assign(data,id):
-  rapids(ExprNode(",", ExprNode("gput", id, data), ExprNode("removeframe", data))._eager())
-  data._id = id
+def assign(data,xid):
+  if data.frame_id == xid: ValueError("Desination key must differ input frame")
+  data._ex = ExprNode("assign",xid,data)._eval_driver(False)
+  data._ex._cache._id = xid
+  data._ex._children = None
   return data
 
 def which(condition):
@@ -343,7 +388,7 @@ def which(condition):
   :param condition: A conditional statement.
   :return: A H2OFrame of 1 column filled with 0-based indices for which the condition is True
   """
-  return H2OFrame(expr=ExprNode("h2o.which",condition,False))._frame()
+  return H2OFrame._expr(expr=ExprNode("h2o.which",condition,False))._frame()
 
 def ifelse(test,yes,no):
   """
@@ -357,6 +402,7 @@ def ifelse(test,yes,no):
   :return: An H2OFrame
   """
   return H2OFrame(expr=ExprNode("ifelse",test,yes,no))._frame()
+
 
 def get_future_model(future_model):
   """
@@ -505,6 +551,7 @@ def check_dims_values(python_obj, h2o_frame, rows, cols):
     for r in range(rows):
       for c in range(cols):
         pval = python_obj[r][c] if rows > 1 else python_obj[c]
+
         hval = h2o_frame[r,c]
         assert pval == hval, "expected H2OFrame to have the same values as the python object for row {0} and column " \
                              "{1}, but h2o got {2} and python got {3}.".format(r, c, hval, pval)
@@ -642,7 +689,7 @@ def remove(object):
   if object is None:
     raise ValueError("remove with no object is not supported, for your protection")
 
-  if isinstance(object, H2OFrame): H2OConnection.delete("DKV/"+object._id)
+  if isinstance(object, H2OFrame): H2OConnection.delete("DKV/"+object.frame_id)
   if isinstance(object, str):      H2OConnection.delete("DKV/"+object)
 
 def remove_all():
@@ -684,7 +731,7 @@ def ls():
 
   :return: Returns a list of keys in the current H2O instance
   """
-  return H2OFrame(expr=ExprNode("ls"))._frame().as_data_frame()
+  return H2OFrame._expr(expr=ExprNode("ls")).as_data_frame(use_pandas=True)
 
 
 def frame(frame_id, exclude=""):
@@ -729,23 +776,25 @@ def download_pojo(model,path="", get_jar=True):
 
 
 
-def download_csv(data, filename):
-  """
-  Download an H2O data set to a CSV file on the local disk.
-  Warning: Files located on the H2O server may be very large! Make
-  sure you have enough hard drive space to accommodate the entire file.
 
-  :param data: an H2OFrame object to be downloaded.
-  :param filename:A string indicating the name that the CSV file should be
-  should be saved to.
-  :return: None
+def download_csv(data, filename):
+  """Download an H2O data set to a CSV file on the local disk.
+
+  Warning: Files located on the H2O server may be very large! Make sure you have enough
+  hard drive space to accommodate the entire file.
+
+  Parameters
+  ----------
+  data : H2OFrame
+    An H2OFrame object to be downloaded.
+  filename : str
+    A string indicating the name that the CSV file should be should be saved to.
   """
-  data._eager()
   if not isinstance(data, H2OFrame): raise(ValueError, "`data` argument must be an H2OFrame, but got " + type(data))
-  url = "http://{}:{}/3/DownloadDataset?frame_id={}".format(H2OConnection.ip(),H2OConnection.port(),data._id)
-  with open(filename, 'w') as f:
-    response = urllib2.urlopen(url)
-    f.write(response.read())
+  url = "http://{}:{}/3/DownloadDataset?frame_id={}".format(H2OConnection.ip(),H2OConnection.port(),data.frame_id)
+  with open(filename, 'w') as f: f.write(urllib2.urlopen(url).read())
+
+
 
 def download_all_logs(dirname=".",filename=None):
   """
@@ -1397,10 +1446,10 @@ def interaction(data, factors, pairwise, max_factors, min_occurrence, destinatio
   :param destination_frame: A string indicating the destination key. If empty, this will be auto-generated by H2O.
   :return: H2OFrame
   """
-  data._eager()
-  factors = [data.names()[n] if isinstance(n,int) else n for n in factors]
+  #data._eager()
+  factors = [data.names[n] if isinstance(n,int) else n for n in factors]
   parms = {"dest": _py_tmp_key() if destination_frame is None else destination_frame,
-           "source_frame": data._id,
+           "source_frame": data.frame_id,
            "factor_columns": [_quoted(f) for f in factors],
            "pairwise": pairwise,
            "max_factors": max_factors,
@@ -1463,7 +1512,7 @@ def set_timezone(tz):
   :param tz: The desired timezone.
   :return: None
   """
-  rapids(ExprNode("setTimeZone", tz)._eager())
+  ExprNode("setTimeZone", tz)._eager_scalar()
 
 def get_timezone():
   """
@@ -1471,7 +1520,7 @@ def get_timezone():
 
   :return: the time zone (string)
   """
-  return H2OFrame(expr=ExprNode("getTimeZone"))._scalar()
+  return ExprNode("getTimeZone")._eager_scalar()
 
 def list_timezones():
   """
@@ -1479,7 +1528,7 @@ def list_timezones():
 
   :return: the time zones (as an H2OFrame)
   """
-  return H2OFrame(expr=ExprNode("listTimeZones"))._frame()
+  return H2OFrame._expr(expr=ExprNode("listTimeZones"))._frame()
 
 
 class H2ODisplay:

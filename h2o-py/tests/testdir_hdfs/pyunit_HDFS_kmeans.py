@@ -32,7 +32,7 @@ def hdfs_kmeans(ip, port):
         print "Importing covtype.data from HDFS"
         url = "hdfs://{0}{1}".format(hdfs_name_node, hdfs_covtype_file)
         covtype_h2o = h2o.import_frame(url)
-        !n = covtype_h2o.nrow
+        n = covtype_h2o.nrow
         print "rows: {0}".format(n)
         assert n == 581012, "Wrong number of rows. Got {0}. Should have got {1}".format(n, 581012)
 

@@ -2,6 +2,8 @@ import sys
 sys.path.insert(1, "../../")
 import h2o
 
+
+# h2o.which was deleted over the Java backend.
 def pyunit_which(ip,port):
 
     iris = h2o.import_frame(h2o.locate("smalldata/iris/iris.csv"))

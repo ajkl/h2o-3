@@ -27,15 +27,23 @@ def binop_plus(ip,port):
     ###################################################################
 
     # LHS: scaler, RHS: H2OFrame
-    res = 1.2 + iris[2]
-    res2 = res[21,:] + iris
-    res2.show()
+    try:
+        res = 1.2 + iris[2]
+        res2 = res[21,:] + iris
+        res2.show()
+        assert False
+    except Exception:
+        pass
 
 
     # LHS: scaler, RHS: H2OVec
-    res = 1.2 + iris[2]
-    res2 = res[21,:] + iris[1]
-    res2.show()
+    try:
+        res = 1.2 + iris[2]
+        res2 = res[21,:] + iris[1]
+        res2.show()
+        assert False
+    except Exception:
+        pass
 
     # LHS: scaler, RHS: scaler
     res = 1.1 + iris[2]
@@ -58,9 +66,13 @@ def binop_plus(ip,port):
     #    pass
 
     # LHS: H2OVec, RHS: scaler
-    res = 1.2 + iris[2]
-    res2 = iris[1] + res[21,:]
-    res2.show()
+    try:
+        res = 1.2 + iris[2]
+        res2 = iris[1] + res[21,:]
+        res2.show()
+        assert False
+    except Exception:
+        pass
 
     ###################################################################
 
@@ -89,9 +101,13 @@ def binop_plus(ip,port):
     #    pass
 
     # LHS: H2OFrame, RHS: scaler
-    res = 1.2 + iris[2]
-    res2 = iris + res[21,:]
-    res2.show()
+    try:
+        res = 1.2 + iris[2]
+        res2 = iris + res[21,:]
+        res2.show()
+        assert False
+    except Exception:
+        pass
 
     # LHS: H2OFrame, RHS: scaler
     res = iris + 2

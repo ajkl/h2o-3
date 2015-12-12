@@ -36,8 +36,8 @@ class ModelBase(object):
     :param test_data: Data to be predicted on.
     :return: A new H2OFrame filled with predictions.
     """
-    if not test_data: raise ValueError("Must specify test data")
-    j = H2OConnection.post_json("Predictions/models/" + self._id + "/frames/" + test_data._id)
+    if not isinstance(test_data,h2o.H2OFrame): raise ValueError("Must specify test data")
+    j = H2OConnection.post_json("Predictions/models/" + self._id + "/frames/" + test_data.frame_id)
     prediction_frame_id = j["model_metrics"][0]["predictions"]["frame_id"]["name"]
     return h2o.get_frame(prediction_frame_id)
 
@@ -70,7 +70,7 @@ class ModelBase(object):
     :param layer: 0 index hidden layer
     """
     if test_data is None: raise ValueError("Must specify test data")
-    j = H2OConnection.post_json("Predictions/models/" + self._id + "/frames/" + test_data._id, deep_features_hidden_layer=layer)
+    j = H2OConnection.post_json("Predictions/models/" + self._id + "/frames/" + test_data.frame_id, deep_features_hidden_layer=layer)
     return h2o.get_frame(j["predictions_frame"]["name"])
 
   def weights(self, matrix_id=0):
@@ -119,12 +119,12 @@ class ModelBase(object):
     else:  # cases dealing with test_data not None
       if not isinstance(test_data, H2OFrame):
         raise ValueError("`test_data` must be of type H2OFrame.  Got: " + type(test_data))
-      res = H2OConnection.post_json("ModelMetrics/models/" + self._id + "/frames/" + test_data._id)
+      res = H2OConnection.post_json("ModelMetrics/models/" + self._id + "/frames/" + test_data.frame_id)
 
       # FIXME need to do the client-side filtering...  PUBDEV-874:   https://0xdata.atlassian.net/browse/PUBDEV-874
       raw_metrics = None
       for mm in res["model_metrics"]:
-        if mm["frame"]["name"] == test_data._id:
+        if mm["frame"]["name"] == test_data.frame_id:
           raw_metrics = mm
           break
       return self._metrics_class(raw_metrics,algo=self._model_json["algo"])

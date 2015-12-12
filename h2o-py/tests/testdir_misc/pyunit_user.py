@@ -10,13 +10,13 @@ def user(ip, port):
     a = h2o.import_frame(path=h2o.locate("smalldata/iris/iris_wheader.csv"))[0:4]
     a.head()
 
-    print a[0].names()  # Column header
+    print a[0].names  # Column header
     print a[2,0]           # column 0, row 2 value
     print a[2,"sepal_len"] # Column 0, row 2 value
     (a[0] + 2).show()  # Add 2 to every element; broadcast a constant
     (a[0] + a[1]).show()  # Add 2 columns; broadcast parallel add
     sum(a).show()
-    print a["sepal_len"].mean()
+    print a["sepal_len"].mean()[0]
 
     print
     print "Rows 50 through 77 in the `sepal_len` column"
@@ -29,13 +29,13 @@ def user(ip, port):
 
     a.show()
 
-    colmeans = [v.mean() for v in a]
+    colmeans = a.mean()
 
     print "The column means: "
     print colmeans
     print
 
-    try:                   print a["Sepal_len"]  # Error, mispelt column name
+    try:                   print a["sepal_len"]  # Error, mispelt column name
     except ValueError, ex: pass  # Expected error
 
     b = h2o.import_frame(path=h2o.locate("smalldata/iris/iris_wheader.csv"))[0:4]
@@ -49,7 +49,7 @@ def user(ip, port):
     c = None
     # Internal "ExprNode(c=a+b)" not dead!
 
-    print 1 + (a[0] + b[1]).mean()
+    print 1 + (a[0] + b[1]).mean()[0]
 
     import collections
 

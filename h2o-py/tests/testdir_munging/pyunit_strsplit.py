@@ -17,7 +17,7 @@ def strsplit_check(ip,port):
     # single column (vec)
     vec = frame["C5"]
     result = vec.strsplit("s")
-    !!assert result.nrow == 150 and result.ncol == 4
+    assert result.nrow == 150 and result.ncol == 4
     assert result[0,0] == "Iri" and result[0,1] == "-" and result[0,2] == "eto" and \
            result[0,3] == "a", "Expected 'Iri', '-', 'eto', and 'a', but got {0}, {1}, {2}, and " \
                                "{3}".format(result[0,0], result[0,1], result[0,2], result[0,3])

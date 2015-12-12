@@ -8,7 +8,7 @@ def space_headers(ip,port):
 
     f = h2o.import_frame(path=h2o.locate("smalldata/jira/citibike_head.csv"))
 
-    print f.names()
+    print f.names
 
     f["starttime"].show()
 

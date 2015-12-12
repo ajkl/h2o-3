@@ -20,7 +20,7 @@ def binop_lt(ip,port):
     res = 5 > iris
     res_rows, res_cols = res.dim
     assert res_rows == rows and res_cols == cols, "dimension mismatch"
-    !new_rows = iris[res[0]].nrow
+    new_rows = iris[res[0]].nrow
     assert new_rows == 22, "wrong number of rows returned"
 
     #frame/vec
@@ -40,9 +40,9 @@ def binop_lt(ip,port):
 
     #vec/vec
     res = iris[0] < iris[1]
-    !res_rows = res.nrow
+    res_rows = res.nrow
     assert res_rows == rows, "dimension mismatch"
-    !new_rows = iris[res].nrow
+    new_rows = iris[res].nrow
     assert new_rows == 0, "wrong number of rows returned"
 
     # frame/frame

@@ -12,7 +12,7 @@ def metric_json_check(ip, port):
     # Regression metric json
     reg_mod = h2o.gbm(y=df["CAPSULE"], x=df[3:], training_frame=df, distribution="gaussian")
     reg_met = reg_mod.model_performance()
-    reg_metric_json_keys_have = reg_met._metric_json.keys()
+    reg_metric_json_keys_have = list(reg_met._metric_json.keys())
     reg_metric_json_keys_desired = [u'model_category',
                                     u'description',
                                     u'r2',
@@ -34,7 +34,7 @@ def metric_json_check(ip, port):
     # Regression metric json (GLM)
     reg_mod = h2o.glm(y=df["CAPSULE"], x=df[3:], training_frame=df, family="gaussian")
     reg_met = reg_mod.model_performance()
-    reg_metric_json_keys_have = reg_met._metric_json.keys()
+    reg_metric_json_keys_have = list(reg_met._metric_json.keys())
     reg_metric_json_keys_desired = [u'model_category',
                                     u'description',
                                     u'r2',
@@ -62,7 +62,7 @@ def metric_json_check(ip, port):
     # Binomial metric json
     bin_mod = h2o.gbm(y=df["CAPSULE"].asfactor(), x=df[3:], training_frame=df, distribution="bernoulli")
     bin_met = bin_mod.model_performance()
-    bin_metric_json_keys_have = bin_met._metric_json.keys()
+    bin_metric_json_keys_have = list(bin_met._metric_json.keys())
     bin_metric_json_keys_desired = [u'AUC',
                                     u'Gini',
                                     u'model_category',
@@ -72,6 +72,7 @@ def metric_json_check(ip, port):
                                     u'model_checksum',
                                     u'MSE',
                                     u'__meta',
+                                    u'gains_lift_table',
                                     u'logloss',
                                     u'scoring_time',
                                     u'thresholds_and_metric_scores',
@@ -90,7 +91,7 @@ def metric_json_check(ip, port):
     # Binomial metric json (GLM)
     bin_mod = h2o.glm(y=df["CAPSULE"].asfactor(), x=df[3:], training_frame=df, family="binomial")
     bin_met = bin_mod.model_performance()
-    bin_metric_json_keys_have = bin_met._metric_json.keys()
+    bin_metric_json_keys_have = list(bin_met._metric_json.keys())
     bin_metric_json_keys_desired = [u'frame',
                                     u'residual_deviance',
                                     u'max_criteria_and_metric_scores',
@@ -105,6 +106,7 @@ def metric_json_check(ip, port):
                                     u'model_checksum',
                                     u'duration_in_ms',
                                     u'model_category',
+                                    u'gains_lift_table',
                                     u'r2',
                                     u'residual_degrees_of_freedom',
                                     u'__meta',
@@ -126,7 +128,7 @@ def metric_json_check(ip, port):
     myY = "fYear"
     mul_mod = h2o.gbm(x=df[myX], y=df[myY], training_frame=df, distribution="multinomial")
     mul_met = mul_mod.model_performance()
-    mul_metric_json_keys_have = mul_met._metric_json.keys()
+    mul_metric_json_keys_have = list(mul_met._metric_json.keys())
     mul_metric_json_keys_desired = [u'cm',
                                     u'model_category',
                                     u'description',
@@ -152,7 +154,7 @@ def metric_json_check(ip, port):
     df = h2o.import_frame(path=h2o.locate("smalldata/iris/iris.csv"))
     clus_mod = h2o.kmeans(x=df[0:4], k=3, standardize=False)
     clus_met = clus_mod.model_performance()
-    clus_metric_json_keys_have = clus_met._metric_json.keys()
+    clus_metric_json_keys_have = list(clus_met._metric_json.keys())
     clus_metric_json_keys_desired = [u'tot_withinss',
                                      u'model_category',
                                      u'description',
