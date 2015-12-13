@@ -36,7 +36,7 @@ def deeplearning_autoencoder(ip, port):
                                 seed=1234)
 
     # conver train_supervised with autoencoder to lower-dimensional space
-    train_supervised_features = ae_model.deepfeatures(train_supervised[0:resp]._frame(), 0)
+    train_supervised_features = ae_model.deepfeatures(train_supervised[0:resp], 0)
 
     assert train_supervised_features.ncol == nfeatures, "Dimensionality of reconstruction is wrong!"
 
@@ -48,15 +48,15 @@ def deeplearning_autoencoder(ip, port):
                                   seed=1234)
 
     # Test the DRF model on the test set (processed through deep features)
-    test_features = ae_model.deepfeatures(test_hex[0:resp]._frame(), 0)
-    test_features = test_features.cbind(test_hex[resp])._frame()
+    test_features = ae_model.deepfeatures(test_hex[0:resp], 0)
+    test_features = test_features.cbind(test_hex[resp])
 
     # Confusion Matrix and assertion
     cm = drf_model.confusion_matrix(test_features)
     cm.show()
 
     # 10% error +/- 0.001
-    assert abs(cm.cell_values[10][10] - 0.082) < 0.001, "Error. Expected 0.082, but got {0}".format(cm.cell_values[10][10])
+    assert abs(cm.cell_values[10][10] - 0.086) < 0.001, "Error. Expected 0.086, but got {0}".format(cm.cell_values[10][10])
 
 if __name__ == '__main__':
     h2o.run_test(sys.argv, deeplearning_autoencoder)

@@ -20,8 +20,8 @@ def random_attack(ip,port):
             if method == 3:
                 s = []
                 for p in range(kwargs['k']):
-                    s.append([random.uniform(train[c].mean()-100,train[c].mean()+100) for c in x])
-                start = h2o.H2OFrame(python_obj=s)
+                    s.append([random.uniform(train[c].mean()[0]-100,train[c].mean()[0]+100) for c in x])
+                start = h2o.H2OFrame(zip(*s))
                 kwargs['user_points'] = start
             else:
                 kwargs['init'] = ["Furthest","Random", "PlusPlus"][method]

@@ -20,6 +20,6 @@ class H2OAutoEncoderModel(ModelBase):
     :param test_data: The dataset upon which the reconstruction error is computed.
     :return: Return the reconstruction error.
     """
-    if not test_data: raise ValueError("Must specify test data")
-    j = H2OConnection.post_json("Predictions/models/" + self._id + "/frames/" + test_data._id, reconstruction_error=True)
+    if ((test_data is None) or (test_data.nrow == 0)): raise ValueError("Must specify test data")
+    j = H2OConnection.post_json("Predictions/models/" + self._id + "/frames/" + test_data.frame_id, reconstruction_error=True)
     return h2o.get_frame(j["model_metrics"][0]["predictions"]["frame_id"]["name"])

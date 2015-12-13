@@ -10,7 +10,7 @@ def anomaly(ip, port):
     train = h2o.import_frame(h2o.locate("bigdata/laptop/mnist/train.csv.gz"))
     test = h2o.import_frame(h2o.locate("bigdata/laptop/mnist/test.csv.gz"))
 
-    predictors = range(0,784)
+    predictors = list(range(0,784))
     resp = 784
 
     # unsupervised -> drop the response column (digit: 0-9)

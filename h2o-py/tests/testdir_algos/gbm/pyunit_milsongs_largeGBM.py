@@ -2,6 +2,7 @@ import sys, shutil
 sys.path.insert(1, "../../../")
 import h2o
 import random
+import os
 
 def milsong_checkpoint(ip,port):
 
@@ -22,7 +23,7 @@ def milsong_checkpoint(ip,port):
     # save the model, then load the model
     model_path = h2o.save_model(model1, name="delete_model", force=True)
     restored_model = h2o.load_model(model_path)
-    shutil.rmtree("delete_model")
+    os.remove("delete_model")   # cannot use shutil.rmtree(), it is a file and not a directory.
 
     # continue building the model
     ntrees2 = ntrees1 + 50
