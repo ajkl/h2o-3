@@ -356,10 +356,12 @@ def extract_java_messages():
     global g_java_general_bad_messages
     global g_java_general_bad_message_types
 
-    start_url = g_jenkins_url
+
         
     for fname in g_java_filenames:  # grab java message from each file
         temp_strings = fname.split('/')
+
+        start_url = g_jenkins_url
 
         for windex in range(6,len(temp_strings)):
             start_url = os.path.join(start_url,temp_strings[windex])
