@@ -401,25 +401,27 @@ def save_dict():
     global g_output_pickle_filename
     global g_failed_test_info_dict
 
-    with open(g_output_pickle_filename,'wb') as test_file:
-        pickle.dump(g_failed_test_info_dict,test_file)
-        test_file.close()
+    allKeys = sorted(g_failed_test_info_dict.keys())
+    if ("failed_tests_info" in allKeys) or ("success_tests_info" in allKeys) or ("9.general_bad_java_messages" in allKeys):
+        with open(g_output_pickle_filename,'wb') as test_file:
+            pickle.dump(g_failed_test_info_dict,test_file)
+            test_file.close()
 
     # write out the failure report as text into a text file
-    with open(g_output_filename,'w') as text_file:
-        for keyName in sorted(g_failed_test_info_dict.keys()):
-            val = g_failed_test_info_dict[keyName]
-            if isinstance(val,list):    # writing one of the job lists
-                if (len(val) == 3):     # it is a message for a test
-                    write_test_java_message(keyName,val,text_file)
-                elif (len(val) == 2):                   # it is a general bad java message
-                    write_java_message(keyName,val,text_file)
-            else:
-                text_file.write(keyName+": ")
-                text_file.write(val)
-                text_file.write('\n\n')
+        with open(g_output_filename,'w') as text_file:
+            for keyName in sorted(g_failed_test_info_dict.keys()):
+                val = g_failed_test_info_dict[keyName]
+                if isinstance(val,list):    # writing one of the job lists
+                    if (len(val) == 3):     # it is a message for a test
+                        write_test_java_message(keyName,val,text_file)
+                    elif (len(val) == 2):                   # it is a general bad java message
+                        write_java_message(keyName,val,text_file)
+                else:
+                    text_file.write(keyName+": ")
+                    text_file.write(val)
+                    text_file.write('\n\n')
 
-        text_file.close()
+            text_file.close()
 
 def write_test_java_message(key,val,text_file):
     global g_failed_jobs
