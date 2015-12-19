@@ -430,7 +430,7 @@ def write_test_java_message(key,val,text_file):
     # val is a tuple of 3 tuples
     for index in range(len(val[0])):
 
-        if ((val[0][index] not in g_failed_jobs) or ((val[0][index] not in g_failed_jobs) and (len(val[1][index]) > 0))):
+        if ((val[0][index] in g_failed_jobs) or ((val[0][index] not in g_failed_jobs) and (len(val[1][index]) > 0))):
             text_file.write("\nTest Name: ")
             text_file.write(val[0][index])
             text_file.write('\n')
