@@ -58,6 +58,7 @@ g_current_testname = ''
 g_java_start_text = 'STARTING TEST:'    # test being started in java
 
 g_ok_java_messages = [] # store java bad messages that we can ignore
+g_java_message_dict = {"messages":[],"message_types":[]}
 
 '''
 The sole purpose of this function is to enable us to be able to call
@@ -286,7 +287,7 @@ def grab_java_message():
 
         for each_line in java_file:
             if (g_java_start_text in each_line):
-                startStr,found,endStsr = each_line.partition(g_java_start_text)
+                startStr,found,endStr = each_line.partition(g_java_start_text)
 
                 if found:   # a new test is being started.  Save old info and move on
                     if len(g_current_testname) > 0:
@@ -294,7 +295,7 @@ def grab_java_message():
         
                     g_current_testname = endStr.strip() # record the test name
                     
-                    java_messsages = []
+                    java_messages = []
                     java_message_types = []
         
             temp_strings = each_line.strip().split()   # grab each line and process
@@ -304,14 +305,19 @@ def grab_java_message():
 
                 startStr,found,endStr = each_line.strip().partition(temp_strings[5])
 
-                if found:
+                if found and (len(endStr.strip()) > 0):
                     tempMessage = endStr.strip()
                     if (tempMessage not in all_messages) and (tempMessage not in g_ok_java_messages):  # found valid bad messages
+
+                        g_java_message_dict["messages"].append(tempMessage)
+                        g_java_message_dict["message_types"].append(temp_strings[5])
+
                         if (len(g_current_testname) == 0):    # java message not associated with any test name
                             g_java_general_bad_messages.append(tempMessage)
                             g_java_general_bad_message_types.append(temp_strings[5])
                         else:
-                            associate_test_with_java(g_current_testname,java_messages,java_message_types)
+                            java_messages.append(tempMessage)
+                            java_message_types.append(temp_strings[5])
                             
 
 
@@ -325,15 +331,15 @@ def associate_test_with_java(testname, java_message,java_message_type):
     global g_success_job_java_messages # record of successful jobs bad java messages
     global g_success_job_java_message_types
 
-
-    if (testname in g_failed_jobs):
-        message_index = g_failed_jobs.index(testname)
-        g_failed_job_java_messages[message_index] = java_message
-        g_failed_job_java_message_types[message_index] = java_message_type
-    else:   # job has been sucessfully executed but something still has gone wrong
-        g_success_jobs.append(testname)
-        g_success_job_java_messages.append(java_message)
-        g_success_job_java_message_types.append(java_message_type)
+    if len(java_message) > 0:
+        if (testname in g_failed_jobs):
+            message_index = g_failed_jobs.index(testname)
+            g_failed_job_java_messages[message_index] = java_message
+            g_failed_job_java_message_types[message_index] = java_message_type
+        else:   # job has been sucessfully executed but something still has gone wrong
+            g_success_jobs.append(testname)
+            g_success_job_java_messages.append(java_message)
+            g_success_job_java_message_types.append(java_message_type)
 
 """
 Function extract_java_messages is written to loop through java.out.txt and
@@ -411,31 +417,33 @@ def save_dict():
             else:
                 text_file.write(keyName+": ")
                 text_file.write(val)
-                text_file.write('\n')
+                text_file.write('\n\n')
 
         text_file.close()
 
 def write_test_java_message(key,val,text_file):
+    global g_failed_jobs
+
     text_file.write(key)
     text_file.write('\n')
 
     # val is a tuple of 3 tuples
     for index in range(len(val[0])):
-        text_file.write("Test Name: ")
-        text_file.write(val[0][index])
-        text_file.write('\n')
 
-        if (len(val[1][index]) > 0):
-            text_file.write("Java Message Type: ")
-            text_file.write(val[1][index])
+        if ((val[0][index] not in g_failed_jobs) or ((val[0][index] not in g_failed_jobs) and (len(val[1][index]) > 0))):
+            text_file.write("\nTest Name: ")
+            text_file.write(val[0][index])
             text_file.write('\n')
 
-            text_file.write("Java Message: ")
-            for jmess in val[2][index]:
-                text_file.write(jmess)
+        if (len(val[1][index]) > 0):
+            text_file.write("Java Message Type and Message: \n")
+            for eleIndex in range(len(val[1][index])):
+                text_file.write(val[2][index][eleIndex]+" ")
+                text_file.write(val[1][index][eleIndex])
                 text_file.write('\n')
 
-    text_file.write('\n \n')
+    text_file.write('\n')
+    text_file.write('\n')
 
 
 def write_java_message(key,val,text_file):
